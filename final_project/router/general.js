@@ -35,29 +35,80 @@ public_users.post("/register", (req,res) => {
 });
 
 // Get the book list available in the shop
-public_users.get('/',function (req, res) {
-  // Send JSON response with books formatted data
-  return res.status(300).send(JSON.stringify(books, null, 4));
+public_users.get('/', async function (req, res) {
+    try {
+        // Since booksdb.js is a local file, we can directly access the 'books' object.
+        // To simulate an async operation, we'll wrap it in a Promise.
+        const booksData = await new Promise((resolve) => {
+            resolve(books);
+        });
+
+        // Send JSON response with books formatted data
+        return res.status(200).send(JSON.stringify(booksData, null, 4));
+
+    } catch (error) {
+        console.error("Error fetching books:", error);
+        return res.status(500).send("Internal Server Error");
+    }
 });
 
 // Get book details based on ISBN
-public_users.get('/isbn/:isbn',function (req, res) {
-  const isbn = req.params.isbn;
-  return res.status(300).send(JSON.stringify(books[isbn],null,4));
- });
+public_users.get('/isbn/:isbn', async function (req, res) {
+    try {
+        const isbn = req.params.isbn;
+
+        // Simulate an asynchronous operation (wrapping the book access in a Promise)
+        const bookData = await new Promise((resolve, reject) => {
+            if (books[isbn]) {
+                resolve(books[isbn]);
+            } else {
+                reject("Book not found");
+            }
+        });
+
+        return res.status(200).send(JSON.stringify(bookData, null, 4)); // 200 instead of 300
+
+    } catch (error) {
+        if (error === "Book not found") {
+            return res.status(404).send("Book not found");
+        }
+        console.error("Error fetching book:", error);
+        return res.status(500).send("Internal Server Error");
+    }
+});
   
 // Get book details based on author
-public_users.get('/author/:author',function (req, res) {
-  const author = req.params.author;
-  const filteredBooks = filterBooks(books,'author', author);
-  return res.status(300).send(JSON.stringify(filteredBooks, null, 4));
+public_users.get('/author/:author', async function (req, res) {
+    try {
+        const author = req.params.author;
+
+        // Simulate an asynchronous operation (wrapping the filterBooks function in a Promise)
+        const filteredBooks = await new Promise((resolve) => {
+            resolve(filterBooks(books, 'author', author));
+        });
+
+        return res.status(200).send(JSON.stringify(filteredBooks, null, 4)); // 200 instead of 300
+
+    } catch (error) {
+        console.error("Error fetching books by author:", error);
+        return res.status(500).send("Internal Server Error");
+    }
 });
 
+
 // Get all books based on title
-public_users.get('/title/:title',function (req, res) {
-    const title = req.params.title.replace('_',' ');
-    const filteredBooks = filterBooks(books,'title', title);
+public_users.get('/title/:title',async function (req, res) {
+    try {
+        const title = req.params.title.replace('_',' ');
+    // Simulate an asynchronous operation (wrapping the filterBooks function in a Promise)
+    const filteredBooks = await new Promise((resolve) =>{
+        resolve(filterBooks(books,'title', title));
+    });
     return res.status(300).send(JSON.stringify(filteredBooks, null, 4));
+    } catch (error) {
+    console.error("Error fetching books by title:", error);
+        return res.status(500).send("Internal Server Error");
+    }
 });
 
 //  Get book review
